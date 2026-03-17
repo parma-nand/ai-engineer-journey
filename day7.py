@@ -24,14 +24,22 @@ class TitanicAnalyzer:
         print(f"Survival Rate {self.df['Survived'].mean()*100:.1f}%")
         print(f" \n By Gender {self.df.groupby('Pclass')['Survived'].mean()}")
         print(f" \n By Gender {self.df.groupby('Sex')['Survived'].mean()}")
+    def visualize(self):
+        fig,axes=plt.subplots(1,3,figsize=(15,4))
+        self.df['Survived'].value_counts().plot(kind='bar',ax=axes[0],color=['red','green'])
+        axes[0].set_title("Survived vs Not")
 
+        sns.boxplot(x=self.df['Pclass'],y='Age',data=self.df,ax=axes[1]).set_title("Boxplot for Class and Age")
+        
+        sns.countplot(x='Sex', hue='Survived', data=self.df, ax=axes[2])
+        axes[2].set_title("Survival by Gender")
 
-
-
-
-
+        plt.tight_layout()
+        plt.show()
 
 
 analyzer=TitanicAnalyzer(df)
 analyzer.clean()
 analyzer.analyze()
+analyzer.visualize()
+

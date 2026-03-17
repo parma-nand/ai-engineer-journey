@@ -1,9 +1,9 @@
 import numpy as np
 
 
-arr=np.array([10,20,30])
-print(arr)
-print(arr.size)
+# arr=np.array([10,20,30])
+# print(arr)
+# print(arr.size)
 # print(arr.shape)
 # print(arr.dtype)
 # print(arr[0])
