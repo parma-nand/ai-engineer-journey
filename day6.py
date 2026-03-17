@@ -16,6 +16,9 @@ def get_missing_values(df):
 
 def filling_missing_values(df):
     df['Age']=df['Age'].fillna(df['Age'].mean())
+
+    # Multiple column filling(Prefer one by one column)
+    # df[['Age','Cabin']] = df[['Age','Cabin']].fillna(df[['Age','Cabin']].mean())
     return df
 # filling_missing_values(df)
 
