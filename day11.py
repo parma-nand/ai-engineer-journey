@@ -67,3 +67,54 @@ plt.ylabel("Scores")
 plt.tight_layout()
 plt.show()
 
+# K fold Cross validation
+print("\n=== K-Fold Cross Validation ===")
+kf=KFold(n_splits=5,shuffle=True,random_state=42)
+rf=RandomForestClassifier(n_estimators=100,random_state=42)
+xgb2=XGBClassifier(n_estimators=100,random_state=42,eval_metric='logloss')
+
+rf_scores=cross_val_score(rf,x,y,cv=kf,scoring='accuracy')
+xgb2_scores=cross_val_score(xgb2,x,y,cv=kf,scoring='accuracy')
+print("\nRandom Forest CV Scores :", rf_scores.round(3))
+print(f"Mean : {rf_scores.mean()*100:.1f}%"
+      f" | Std: {rf_scores.std()*100:.1f}%")
+
+print("\nXGBoost CV Scores :", xgb2_scores.round(3))
+print(f"Mean : {xgb2_scores.mean()*100:.1f}%"
+      f" | Std: {xgb2_scores.std()*100:.1f}%")
+
+print("\n=== Hyperparameter Experiment ===")
+learning_rates = [0.001, 0.01, 0.1, 0.3, 0.5]
+lr_scores      = []
+
+for lr in learning_rates:
+    model = XGBClassifier(
+        n_estimators  = 100,
+        learning_rate = lr,
+        random_state  = 42,
+        eval_metric   = 'logloss'
+    )
+    scores = cross_val_score(model, x, y, cv=3,
+                             scoring='accuracy')
+    lr_scores.append(scores.mean())
+    print(f"LR={lr:.3f} → CV Accuracy: {scores.mean()*100:.1f}%")
+    
+    # ── Step 8: Learning Rate Comparison ──────
+plt.figure(figsize=(8, 4))
+plt.plot(learning_rates, lr_scores,
+         marker='o', color='blue', linewidth=2)
+plt.title("Learning Rate vs CV Accuracy")
+plt.xlabel("Learning Rate")
+plt.ylabel("CV Accuracy")
+plt.xscale('log')
+plt.savefig("learning_rate_experiment.png")
+plt.show()
+
+# ── Step 9: Final Comparison ──────────────
+print("\n=== Final Comparison ===")
+print(f"Random Forest CV : {rf_scores.mean()*100:.1f}%"
+      f" (+/- {rf_scores.std()*100:.1f}%)")
+print(f"XGBoost       CV : {xgb2_scores.mean()*100:.1f}%"
+      f" (+/- {xgb2_scores.std()*100:.1f}%)")
+print(f"\nBest Learning Rate: "
+      f"{learning_rates[np.argmax(lr_scores)]}")
