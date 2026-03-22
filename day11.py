@@ -107,7 +107,6 @@ plt.title("Learning Rate vs CV Accuracy")
 plt.xlabel("Learning Rate")
 plt.ylabel("CV Accuracy")
 plt.xscale('log')
-plt.savefig("learning_rate_experiment.png")
 plt.show()
 
 # ── Step 9: Final Comparison ──────────────
