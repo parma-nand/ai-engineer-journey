@@ -19,7 +19,7 @@ df['Embarked'] = df['Embarked'].fillna('S')
 df['Embarked'] = df['Embarked'].map({'S': 0, 'C': 1, 'Q': 2})
 
 X = df[['Age', 'Sex', 'Pclass', 'Fare', 'Embarked']].values
-y = df['Survived'].values
+y = df['Survived'].values #Converting to Numpy Arrays because tensor accept only numpy arrays
 
 scaler = StandardScaler()
 X      = scaler.fit_transform(X)
@@ -76,18 +76,6 @@ def train_model(optimizer_name, epochs=100):
 
     train_losses = []
     test_losses  = []
-
-    for epoch in range(epochs):
-        # ── Training mode ─────────────────
-        model.train()
-        y_pred = model(X_train).squeeze()
-        loss   = criterion(y_pred, y_train)
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        train_losses.append(loss.item())
-
 
     for epoch in range(epochs):
         # ── Training mode ─────────────────
@@ -222,5 +210,3 @@ plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.legend()
 plt.show()
-print("Learning rate chart saved!")
-            
