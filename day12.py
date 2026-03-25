@@ -63,7 +63,10 @@ for epoch in range(epochs):
 
     # Backward pass
     optimizer.zero_grad()
+    
+    
     loss.backward()
+    
     optimizer.step()
 
     if (epoch + 1) % 100 == 0:
