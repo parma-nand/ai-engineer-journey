@@ -125,4 +125,58 @@ for epoch in range(epochs):
     print(f"Epoch {epoch+1}/{epochs} | "
           f"Loss: {epoch_loss:.4f} | "
           f"Accuracy: {epoch_acc*100:.1f}%")
+# ── Step 5: Evaluate on Test Data ─────────
+print("\n=== Evaluating on Test Data ===")
+model.eval()
+correct       = 0
+total_samples = 0
+with torch.no_grad():
+    for images, labels in test_loader:
+        outputs      = model(images)
+        _, predicted = torch.max(outputs, 1)
+        total_samples += labels.size(0)
+        correct       += (predicted == labels).sum().item()
+test_acc = correct / total_samples
+print(f"Test Accuracy: {test_acc*100:.2f}%")
+# ── Step 6: Visualize Results ─────────────
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+# Training loss
+axes[0].plot(range(1, epochs+1), train_losses,
+             marker='o', color='blue')
+axes[0].set_title("Training Loss")
+axes[0].set_xlabel("Epoch")
+axes[0].set_ylabel("Loss")
+# Training accuracy
+axes[1].plot(range(1, epochs+1),
+             [a*100 for a in train_accs],
+             marker='o', color='green')
+axes[1].set_title("Training Accuracy")
+axes[1].set_xlabel("Epoch")
+axes[1].set_ylabel("Accuracy %")
+plt.suptitle(f"CNN Training Results | "
+             f"Test Accuracy: {test_acc*100:.1f}%",
+             fontsize=13)
+plt.tight_layout()
+# plt.savefig("cnn_training.png")
+plt.show()
+# ── Step 7: Predict on Sample Images ──────
+print("\n=== Sample Predictions ===")
+model.eval()
+sample_images, sample_labels = next(iter(test_loader))
+with torch.no_grad():
+    outputs      = model(sample_images[:10])
+    _, predicted = torch.max(outputs, 1)
+fig, axes = plt.subplots(2, 5, figsize=(12, 5))
+for i, ax in enumerate(axes.flatten()):
+    ax.imshow(sample_images[i].squeeze(), cmap='gray')
+    color = 'green' if predicted[i] == sample_labels[i] else 'red'
+    ax.set_title(f"Pred:{predicted[i].item()} "
+                 f"True:{sample_labels[i].item()}",
+                 color=color)
+    ax.axis('off')
+plt.suptitle("Green=Correct  Red=Wrong", fontsize=12)
+plt.tight_layout()
+# plt.savefig("cnn_predictions.png")
+plt.show()
+print("All charts saved!")
 
