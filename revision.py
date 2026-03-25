@@ -1,25 +1,33 @@
-for epoch in range(100):
-    
-  # Loss and Optimizer  
-    criterion = nn.BCELoss()          # binary classification
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
+import matplotlib.pyplot as plt
+import numpy as np
 
-#   Forward pass
-y_pred=model(x_train).squeez()
+# x = np.linspace(0, 10, 100)
 
+# plt.subplot(1, 3, 1)          # (rows, cols, which plot)
+# plt.plot(x, np.sin(x))
+# plt.title("Sin")
 
-# calculate loss
-loss=criterion(y_pred,y_train)
+# plt.subplot(1, 3, 2)          # move to 2nd plot
+# plt.plot(x, np.cos(x))
+# plt.title("Cos")
 
+# plt.subplot(1, 3, 3)          # move to 3rd plot
+# plt.plot(x, np.tan(x))
+# plt.title("Tan")
 
-# clear old gradient
-optimizer.zero_grad()
+# plt.show()
+# x = np.linspace(0, 10, 100)
 
+axes = plt.subplots(1, 3, figsize=(12, 4))  # all 3 at once
 
-# Claculate new gradient
-loss.backward()
+axes[0].plot(x, np.sin(x))
+axes[0].set_title("Sin")
 
+axes[1].plot(x, np.cos(x))
+axes[1].set_title("Cos")
 
-# update weighs
-optimizer.step()
+axes[2].plot(x, np.tan(x))
+axes[2].set_title("Tan")
+
+plt.show()
