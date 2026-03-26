@@ -39,7 +39,7 @@ print(f"Testing samples  : {len(test_dataset)}")
 print(f"Image shape      : {train_dataset[0][0].shape}")
 print(f"Number of classes: 10 (digits 0-9)")
 # ── Step 2: Visualize Sample Images ───────
-fig, axes = plt.subplots(2, 5, figsize=(12, 5))
+(fig, axes) = plt.subplots(2, 5, figsize=(12, 5))
 for i, ax in enumerate(axes.flatten()):
     img, label = train_dataset[i]
     ax.imshow(img.squeeze(), cmap='gray')
@@ -58,7 +58,7 @@ class DigitCNN(nn.Module):
         self.conv_layers = nn.Sequential(
             # Conv Layer 1
             nn.Conv2d(1, 32, kernel_size=3, padding=1),
-            # 1 channel in, 32 filters out
+            # 1 channel in, 32 filters out,kernal 3x3
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
             # image: 28x28 → 14x14
@@ -69,7 +69,7 @@ class DigitCNN(nn.Module):
             nn.MaxPool2d(2, 2),
             # image: 14x14 → 7x7
         )
-        # Fully connected layers
+        # Fully connected layers    
         self.fc_layers = nn.Sequential(
             nn.Flatten(),              # 64 * 7 * 7 = 3136
             nn.Linear(64 * 7 * 7, 128),
