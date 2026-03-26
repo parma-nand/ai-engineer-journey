@@ -1,11 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Load Titanic dataset
+# Load Titanic dataset.
 url = "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv"
 df = pd.read_csv(url)
 
-# Explore data
+# Explore data.
 print("Shape:", df.shape)
 print("\nFirst 5 rows:")
 print(df.head())
