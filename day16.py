@@ -79,6 +79,7 @@ for param in model.parameters():
 num_features   = model.fc.in_features
 model.fc       = nn.Linear(num_features, 10)
 print(f"Replaced last layer: {num_features} → 10")
+
 # Only last layer trains
 trainable = sum(p.numel() for p in model.parameters()
                 if p.requires_grad)
