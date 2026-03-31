@@ -15,7 +15,7 @@ df["Age"]=df['Age'].fillna(df['Age'].mean())
 df['Fare']=df['Fare'].fillna(df['Fare'].mean())
 df['Sex']=df['Sex'].map({'male':0,'female':1})
 df['Embarked']=df['Embarked'].fillna('S')
-df['Embarked']=df['Embarked'].map({'S':0,'Q':1,'C':2})
+# df['Embarked']=df['Embarked'].map({'S':0,'Q':1,'C':2})
 
 x=df[['Age','Fare','Pclass','Sex','SibSp','Parch']]
 y=df['Survived']
