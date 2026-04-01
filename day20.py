@@ -41,6 +41,7 @@ from sklearn.metrics import r2_score,roc_auc_score,root_mean_squared_error,mean_
 # sns.heatmap(corr,annot=True,cmap='coolwarm')
 # plt.show()
 
+# Linear Regression
 url="https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv"
 df=pd.read_csv(url)
 df['Age']=df['Age'].fillna(df['Age'].mean())
@@ -66,3 +67,4 @@ print("\n--- Model Performance ---")
 print(f"MSE        : {mse:.2f}")
 print(f"RMSE       : {rmse:.2f}")
 print(f"R2 Score   : {r2:.2f}")
+

@@ -1,9 +1,16 @@
 import pandas as pd
 
 url = "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv"
-df = pd.read_csv(url)
-print(df.info())
-print(df.describe())
+df=pd.read_csv(url)
+print(df.isnull().sum())
+
+df['Age']=df['Age'].fillna(df['Age'].mean)
+print(df.isnull().sum())
+df=df.dropna(subset=['Cabin'])
+print(df.isnull().sum())
+# df = pd.read_csv(url)
+# print(df.info())
+# print(df.describe())
 # print("Shape:\n", df.shape)
 # print("Columns\n",df.columns.to_list())
 # # print("Datatype \n",df.dtypes)

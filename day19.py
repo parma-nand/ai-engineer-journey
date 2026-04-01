@@ -13,6 +13,7 @@ print("Day 19 — PyTorch vs TensorFlow Comparison")
 print("=" * 50)
 print(f"PyTorch version    : {torch.__version__}")
 print(f"TensorFlow version : {tf.__version__}")
+
 # ── Step 1: Load & Prepare Same Dataset ─────
 # Using same Titanic dataset as Day 18
 # So we can compare RESULTS fairly

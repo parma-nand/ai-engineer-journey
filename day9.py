@@ -39,6 +39,7 @@ print("Model trained Successfully")
 # ── Predict ───────────────────────────────
 y_pred      = model.predict(x_test)
 y_pred_prob = model.predict_proba(x_test)[:, 1]
+print("Predicted Probability (Threshhold): " ,y_pred_prob)
 
 # _____Evaluate_________________
 accuracy=accuracy_score(y_test,y_pred)
