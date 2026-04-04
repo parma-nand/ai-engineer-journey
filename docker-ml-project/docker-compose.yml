@@ -1,7 +1,22 @@
-version: "3.8"
-
 services:
-  ml-app:
+  titanic-api:
     build: .
+    container_name: titanic_predictor
     ports:
       - "8000:8000"
+    restart: unless-stopped
+
+  streamlit:
+    image: python:3.10-slim
+    container_name: titanic_frontend
+    working_dir: /app
+    volumes:
+      - ./app.py:/app/app.py
+    ports:
+      - "8501:8501"
+    depends_on:
+      - titanic-api
+    command: >
+      sh -c "pip install streamlit requests --quiet &&
+             streamlit run app.py --server.port=8501 --server.address=0.0.0.0"
+    restart: unless-stopped
