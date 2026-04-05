@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import torch
 import torch.nn as nn
+import joblib
 
 # Load Data and Clean Data
 url="https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv"
@@ -30,6 +31,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
+
 
 # Convert data into Tensor
 X_train = torch.FloatTensor(X_train)
@@ -82,6 +84,11 @@ from sklearn.metrics import accuracy_score
 
 accuracy = accuracy_score(y_test, y_pred)
 print("Accuracy:", accuracy)
+
+# assume your trained model is named 'model'
+joblib.dump(scaler, "scaler.pkl")  # ← add this
+joblib.dump(model, "model.pkl")
+
         
 print("Hii")
 
