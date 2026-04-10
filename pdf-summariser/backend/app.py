@@ -1,12 +1,12 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 import pdfplumber
 import os
+import uuid
 from nltk.tokenize import sent_tokenize
 import nltk
 import spacy
 from spacy.matcher import PhraseMatcher
-from parser import parse_resume
-from pdfminer.high_level import extract_text
+from parser import parse_resume, build_summary
 
 nltk.download('punkt', quiet=True)
 nltk.download('punkt_tab', quiet=True)
@@ -16,7 +16,7 @@ app = FastAPI()
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# ✅ Load spaCy FIRST
+# ✅ Load spaCy
 nlp = spacy.load("en_core_web_sm")
 matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
 
@@ -29,44 +29,78 @@ SKILLS_BY_CATEGORY = {
     "Tools":        ["git", "linux", "jira", "jenkins", "airflow", "spark"],
 }
 
-ALL_SKILLS = []
 for category, skills in SKILLS_BY_CATEGORY.items():
     patterns = [nlp.make_doc(skill) for skill in skills]
     matcher.add(category, patterns)
-    ALL_SKILLS.extend(skills)
+
 
 # 📄 Extract text from PDF
-def extract_text(file_path):
+# Strategy:
+#   1. Try pdfplumber (best for structured/text PDFs)
+#   2. Fallback to pymupdf/fitz (handles more PDF variants)
+#   3. If both yield nothing → scanned/image PDF
+#   Returns: (text, error_type)
+#     error_type = None | "corrupted" | "scanned"
+def extract_pdf_text(file_path):
     text = ""
+
+    # ── Attempt 1: pdfplumber ──────────────────────────
     try:
         with pdfplumber.open(file_path) as pdf:
-            for i, page in enumerate(pdf.pages):
+            for page in pdf.pages:
                 try:
                     page_text = page.extract_text()
                     if page_text:
-                        text += page_text
+                        text += page_text + "\n"
                 except Exception:
                     continue
     except Exception:
-        return None  # ✅ fake or corrupted PDF returns None
-    return text.strip()
+        text = ""  # pdfplumber failed, try fitz below
 
-# 🧹 Clean text
+    # ── Attempt 2: pymupdf (fitz) fallback ────────────
+    if not text.strip():
+        try:
+            import fitz  # pymupdf
+            doc = fitz.open(file_path)
+            for page in doc:
+                page_text = page.get_text()
+                if page_text:
+                    text += page_text + "\n"
+            doc.close()
+        except fitz.FileDataError:
+            return None, "corrupted"   # genuinely broken file
+        except Exception:
+            return None, "corrupted"
+
+    if not text.strip():
+        return None, "scanned"         # both extractors found no text
+
+    return text.strip(), None
+
+
+# 🧹 Clean text (lowercase, collapse whitespace)
 def clean_text(text):
     return " ".join(text.lower().split())
 
-# 🧠 Summary
-def summarize(text, max_chars=300):
-    sentences = sent_tokenize(text)
-    summary = ""
-    for sentence in sentences:
-        if len(summary) + len(sentence) <= max_chars:
-            summary += sentence + " "
-        else:
-            break
-    return summary.strip() if summary else sentences[0][:max_chars]
 
-# 🎯 Extract skills
+# 🧠 Summary — 50 words max, from ORIGINAL cased text
+def summarize(text, max_words=50):
+    sentences = sent_tokenize(text)
+    summary_words = []
+    for sentence in sentences:
+        words = sentence.split()
+        if len(summary_words) + len(words) <= max_words:
+            summary_words.extend(words)
+        else:
+            remaining = max_words - len(summary_words)
+            if remaining > 0:
+                summary_words.extend(words[:remaining])
+            break
+    result = " ".join(summary_words).strip()
+    return (result + "...") if result else ""
+
+
+# 🎯 Extract skills using spaCy PhraseMatcher
 def extract_skills(text):
     doc = nlp(text.lower())
     matches = matcher(doc)
@@ -80,18 +114,19 @@ def extract_skills(text):
             found[category].append(skill)
     return found
 
+
 # 🔍 Detect document type
 def detect_type(text):
     if "revenue" in text or "profit" in text:
         return "financial"
     return "resume"
 
-# 🔥 API
 
+# 🔥 API Endpoint
 @app.post("/parse")
 async def parse(file: UploadFile = File(...)):
 
-    # ✅ Validate file
+    # ✅ Validate file extension
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
 
@@ -101,33 +136,49 @@ async def parse(file: UploadFile = File(...)):
     contents = await file.read()
 
     if len(contents) > 5 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File too large")
+        raise HTTPException(status_code=400, detail="File too large (max 5MB)")
 
-    # ✅ Unique temp file (IMPORTANT)
-    file_path = os.path.join(UPLOAD_FOLDER, f"temp_{file.filename}")
+    # ✅ Use UUID to avoid race conditions with concurrent uploads
+    unique_name = f"{uuid.uuid4().hex}_{file.filename}"
+    file_path = os.path.join(UPLOAD_FOLDER, unique_name)
 
-    with open(file_path, "wb") as f:
-        f.write(contents)
+    try:
+        with open(file_path, "wb") as f:
+            f.write(contents)
 
-    # ✅ Extract text
-    text = extract_text(file_path)
+        # ✅ Extract text (two-stage: pdfplumber → pymupdf fallback)
+        text, error_type = extract_pdf_text(file_path)
 
-    if text is None:
-        raise HTTPException(status_code=422, detail="Corrupted PDF")
+        if error_type in ("corrupted", "scanned"):
+            raise HTTPException(
+                status_code=422,
+                detail="Only text-based (readable) PDFs are supported. "
+                       "Please upload a PDF with selectable text, not a scanned image or image-only file."
+            )
 
-    if text.strip() == "":
-        raise HTTPException(status_code=422, detail="Scanned/image PDF not supported")
+        # ✅ Skills from lowercased text
+        clean = clean_text(text)
+        skills = extract_skills(clean)
+        doc_type = detect_type(clean)
 
-    # ✅ Clean + reuse logic
-    clean = clean_text(text)
+        # ✅ Structured resume parsing
+        parsed_data = parse_resume(text)
 
-    # ✅ OLD features
-    summary = summarize(clean)
-    skills = extract_skills(clean)
-    doc_type = detect_type(clean)
+        # ✅ Smart summary: uses resume's own summary section, or auto-generates
+        summary = build_summary(
+            name             = parsed_data.get("name"),
+            years_exp        = parsed_data.get("years_of_experience", 0),
+            companies        = parsed_data.get("companies", []),
+            skills_by_category = skills,
+            sections         = parsed_data.get("_raw_sections", {}),
+        )
+        # Remove internal key before sending response
+        parsed_data.pop("_raw_sections", None)
 
-    # ✅ NEW parsing
-    parsed_data = parse_resume(text)
+    finally:
+        # ✅ Always clean up temp file
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
     return {
         "status": "success",

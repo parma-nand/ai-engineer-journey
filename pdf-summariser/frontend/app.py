@@ -1,25 +1,21 @@
-import base64
 import streamlit as st
 import requests
 import os
 
-# 🔗 API
+# 🔗 Backend API URL
 API_URL = os.getenv("API_URL", "http://resume-api:8000/parse")
 
 st.set_page_config(page_title="Resume Parser", layout="centered")
 
-# 🎯 Title
 st.title("📄 Resume Parser")
 
-# 📤 Upload
 uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
 
-# 🔘 Button
 if st.button("Parse Resume"):
 
     if uploaded_file is not None:
 
-        with st.spinner("Processing..."):
+        with st.spinner("Processing your resume..."):
 
             try:
                 response = requests.post(
@@ -30,64 +26,99 @@ if st.button("Parse Resume"):
                             uploaded_file.getvalue(),
                             "application/pdf"
                         )
-                    }
+                    },
+                    timeout=30
                 )
 
                 if response.status_code == 200:
 
                     result = response.json()
-                    data = result.get("data", {})
+                    data   = result.get("data", {})
 
-                    # =========================
-                    # 👤 Candidate Info (Simple & Clean)
-                    # =========================
-                    st.markdown("## Candidate Information")
+                    # ──────────────────────────────
+                    # 👤 Candidate Info
+                    # ──────────────────────────────
+                    st.markdown("## 👤 Candidate Information")
 
-                    st.markdown(f"**Name is name:** {data.get('name', 'N/A')}")
-                    st.markdown(f"**Email:** {data.get('email', 'N/A')}")
-                    st.markdown(f"**Phone:** {data.get('phone', 'N/A')}")
+                    st.markdown(f"**Name:** {data.get('name') or 'N/A'}")
+                    st.markdown(f"**Email:** {data.get('email') or 'N/A'}")
+                    st.markdown(f"**Phone:** {data.get('phone') or 'N/A'}")
                     st.markdown(f"**Experience:** {data.get('years_of_experience', 0)} years")
 
+                    companies = data.get("companies", [])
+                    if companies:
+                        st.markdown(f"**{'Company' if len(companies) == 1 else 'Companies'}:** {', '.join(companies)}")
+
                     st.divider()
-                    
-                    # =========================
-                    # 🎯 Skills (Category-wise)
-                    # =========================
-                    st.markdown("## Skills")
+
+                    # ──────────────────────────────
+                    # 📝 Summary
+                    # ──────────────────────────────
+                    summary = result.get("summary", "")
+                    if summary:
+                        st.markdown("## 📝 Summary")
+                        st.write(summary)
+                        st.divider()
+
+                    # ──────────────────────────────
+                    # 🎯 Skills by Category
+                    # ──────────────────────────────
+                    st.markdown("## 🎯 Skills")
                     skills = result.get("skills_by_category", {})
                     if skills:
                         for category, skill_list in skills.items():
                             if skill_list:
                                 st.markdown(f"**{category}:** {', '.join(skill_list)}")
-                    else :
-                        st.write("No Skills Found")
+                    else:
+                        st.info("No recognised skills found.")
 
-                    # =========================
-                    # 📂 Sections (Static, limited text)
-                    # =========================
-                    
                     st.divider()
-                    st.markdown("## Resume Sections")
 
-                    def limit_words(text, max_words=50):
-                        words = text.split()
-                        return " ".join(words[:max_words]) + ("..." if len(words) > max_words else "")
+                    # ──────────────────────────────
+                    # 📂 Resume Sections
+                    #    Shows all 4: experience, education,
+                    #    projects, certifications
+                    # ──────────────────────────────
+                    st.markdown("## 📂 Resume Sections")
 
                     sections = data.get("sections", {})
 
-                    for section, content in sections.items():
-                        st.markdown(f"### {section.title()}")
+                    SECTION_ICONS = {
+                        "experience":     "💼",
+                        "education":      "🎓",
+                        "projects":       "🛠️",
+                        "certifications": "📜",
+                    }
+
+                    for section_key in ["experience", "education", "projects", "certifications"]:
+                        icon    = SECTION_ICONS.get(section_key, "•")
+                        title   = section_key.title()
+                        content = sections.get(section_key, "").strip()
+
+                        st.markdown(f"### {icon} {title}")
                         if content:
-                            st.write(limit_words(content))
+                            st.write(content)
                         else:
-                            st.write("Not found")
+                            st.caption("Not found in resume.")
                         st.divider()
 
-                else:
-                    st.error(f"API Error: {response.status_code}")
+                elif response.status_code == 422:
+                    detail = response.json().get("detail", "Unprocessable file.")
+                    st.error(f"❌ {detail}")
 
+                elif response.status_code == 400:
+                    detail = response.json().get("detail", "Bad request.")
+                    st.error(f"❌ {detail}")
+
+                else:
+                    st.error(f"❌ API Error {response.status_code}: {response.text}")
+
+            except requests.exceptions.ConnectionError:
+                st.error("❌ Cannot reach the backend. Is it running?")
+            except requests.exceptions.Timeout:
+                st.error("❌ Request timed out. Try again.")
             except Exception as e:
-                st.error(f"Connection error: {e}")
+                st.error(f"❌ Unexpected error: {e}")
 
     else:
-        st.warning("Please upload a PDF first")
+        st.warning("⚠️ Please upload a PDF first.")
