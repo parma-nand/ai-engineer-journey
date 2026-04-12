@@ -1,0 +1,4 @@
+2026-04-12 07:41:02.449 | INFO     | app.routes:upload_resume:57 - Processing resume: Resume Test File 1.pdf (46KB)
+2026-04-12 07:41:02.450 | INFO     | app.parser_service:parse:31 - Extracting text from: uploads/00411abc95ce42f482ada0350ea96826_Resume Test File 1.pdf
+2026-04-12 07:41:02.569 | INFO     | app.parser_service:parse:45 - Extracted 2410 chars from 1 pages
+2026-04-12 07:41:02.595 | INFO     | app.routes:upload_resume:65 - Parsed successfully. ID=ed2f8fd8-98aa-43dd-ad42-3b227e824f95, score=80
