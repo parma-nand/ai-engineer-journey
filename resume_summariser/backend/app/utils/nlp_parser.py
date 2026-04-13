@@ -435,7 +435,7 @@ def extract_projects(proj_text: str) -> list[dict]:
     current_proj = None
 
     for line in lines:
-        is_bullet = line.startswith(("•", "-", "*", "–", "+"))
+        is_bullet = line.startswith(("•", "-", "*", "_", "+"))
         gh_match  = _GITHUB_URL.search(line)
 
         if not is_bullet and len(line.split()) <= 10 and not gh_match:

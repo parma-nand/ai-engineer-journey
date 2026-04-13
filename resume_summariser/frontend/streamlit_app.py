@@ -520,24 +520,24 @@ def render_results(data: dict):
             edu_html += '</div>'
             st.markdown(edu_html, unsafe_allow_html=True)
 
-    with col_proj:
-        if projects:
-            proj_html = '<div class="card"><div class="card-title">🚀 PROJECTS</div>'
-            for p in projects[:4]:
-                link_html = f'<a class="project-link" href="{p["link"]}" target="_blank">↗ View</a>' if p.get("link") else ""
-                techs = " ".join(f'<span class="skill-chip" style="font-size:0.7rem">{t}</span>' for t in p.get("technologies", [])[:4])
-                proj_html += f"""
-                <div class="project-card">
-                    <div style="display:flex;justify-content:space-between;align-items:start">
-                        <div class="project-name">{p['name']}</div>
-                        {link_html}
-                    </div>
-                    <div class="project-desc">{p.get('description','')[:100] or ''}</div>
-                    <div style="margin-top:0.4rem">{techs}</div>
-                </div>
-                """
-            proj_html += '</div>'
-            st.markdown(proj_html, unsafe_allow_html=True)
+    # with col_proj:
+    #    if projects:
+    #         proj_html = '<div class="card"><div class="card-title">🚀 PROJECTS</div>'
+    #         for p in projects[:4]:
+    #             link_html = f'<a class="project-link" href="{p["link"]}" target="_blank">↗ View</a>' if p.get("link") else ""
+    #             techs = " ".join(f'<span class="skill-chip" style="font-size:0.7rem">{t}</span>' for t in p.get("technologies", [])[:4])
+    #             proj_html += f"""
+    #             <div class="project-card">
+    #                 <div style="display:flex;justify-content:space-between;align-items:start">
+    #                     <div class="project-name">{p['name']}</div>
+    #                     {link_html}
+    #                 </div>
+    #                 <div class="project-desc">{(p.get('description') or '')[:100]}</div>
+    #                 <div style="margin-top:0.4rem">{techs}</div>
+    #             </div>
+    #             """
+    #         proj_html += '</div>'
+    #         st.markdown(proj_html, unsafe_allow_html=True)
 
     # ── Certifications ──────────────────────────────────────────────
     if certs:
