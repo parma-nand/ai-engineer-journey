@@ -74,11 +74,12 @@ plt.show()
 # Random Forest
 
 rf_model = RandomForestClassifier(
-    n_estimators=100, max_depth=6, random_state=42  # 100 trees  # each tree max depth 6
+    n_estimators=100, max_depth=6, random_state=42, oob_score=True # 100 trees  # each tree max depth 6
 )
 rf_model.fit(x_train, y_train)
 rf_pred = rf_model.predict(x_test)
 rf_accuracy = accuracy_score(y_test, rf_pred)
+rf_oob_accuracy=rf_model.oob_score_
 print(f"Random Forest Accuracy : {rf_accuracy : 0.2f}")
 
 print("Classification Report :  ")
@@ -121,3 +122,4 @@ print(f"Decision Tree Shallow : {shallow_acc*100:.1f}%")
 print(f"Decision Tree Medium  : {medium_acc*100:.1f}%")
 print(f"Decision Tree Deep    : {deep_acc*100:.1f}%")
 print(f"Random Forest         : {rf_accuracy*100:.1f}%")
+print(f"Random Forest OOB Score         : {rf_oob_accuracy*100:.1f}%")
